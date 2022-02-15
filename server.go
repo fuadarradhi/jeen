@@ -53,6 +53,8 @@ type HandlerServerFunc func(serv *Server)
 type HandlerRouteFunc func(res *Resource)
 type HandlerMiddlewareFunc func(res *Resource) bool
 
+type Map map[string]interface{}
+
 type Options func(s *Server)
 
 func WithDatabase(usedb bool) Options {
