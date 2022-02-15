@@ -52,10 +52,12 @@ func main() {
 	defer serv.Close()
 
 	serv.Get("/", func(res *jeen.Resource) {
+
 		res.Session.Iterate(func(session *jeen.Session) error {
 			fmt.Println(session.Get("key").Int())
 			return nil
 		})
+
 	}, jeen.WithDatabase(true))
 
 	serv.ListenAndServe(":8000")

@@ -7,8 +7,14 @@ import (
 )
 
 type Database struct {
-	Context context.Context
-	Conn    *sql.Conn
+	context context.Context
+
+	// database/sql DB pool, can be used by other packages that require a *sql.DB
+	DB *sql.DB
+
+	// database/sql Conn, can be used by other packages that require
+	// a single connection from *sql.DB
+	Conn *sql.Conn
 }
 
 // Conn returns a single connection by either opening a new connection
@@ -34,8 +40,9 @@ func conn(ctx context.Context, db *sql.DB) (*Database, error) {
 	}
 
 	return &Database{
-		Context: ctx,
+		context: ctx,
 		Conn:    conn,
+		DB:      db,
 	}, nil
 }
 
