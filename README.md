@@ -17,6 +17,7 @@ Database and session has also been included so that it can be used easily in eve
 ## Credits
 - Go Chi Router (https://github.com/go-chi/chi)
 - SCS Session (https://github.com/alexedwards/scs)
+- Scanny (https://github.com/georgysavva/scany)
 
 
 ## Author

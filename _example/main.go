@@ -11,7 +11,8 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/fuadarradhi/jeen"
 	"github.com/gomodule/redigo/redis"
-	_ "github.com/jackc/pgx/v4/stdlib"
+	"github.com/jackc/pgx/v4"
+	"github.com/jackc/pgx/v4/stdlib"
 	"github.com/joho/godotenv"
 )
 
@@ -24,14 +25,20 @@ func main() {
 
 	serv := jeen.InitServer(&jeen.Config{
 		Driver: &jeen.Driver{
+
 			// Database driver
 			Database: func() *sql.DB {
-				db, err := sql.Open("pgx", os.Getenv("DSN"))
+
+				config, err := pgx.ParseConfig(os.Getenv("DSN"))
 				if err != nil {
 					panic(err)
 				}
+				config.PreferSimpleProtocol = true
+				db := stdlib.OpenDB(*config)
 				return db
+
 			}(),
+
 			// SCS Session store
 			Session: func() scs.Store {
 				pool := &redis.Pool{
@@ -43,6 +50,7 @@ func main() {
 				return redisstore.New(pool)
 			}(),
 		},
+
 		// Default value
 		Default: &jeen.Default{
 			WithDatabase: false,
@@ -53,10 +61,24 @@ func main() {
 
 	serv.Get("/", func(res *jeen.Resource) {
 
-		res.Session.Iterate(func(session *jeen.Session) error {
-			fmt.Println(session.Get("key").Int())
-			return nil
-		})
+		type Satker struct {
+			ID   int
+			Nama string
+		}
+
+		var satker Satker
+		err := res.Database.Query("SELECT id, nama FROM ref_satker").Row(&satker)
+
+		res.Database.Insert("ref_satker", jeen.Map{
+			"id":   id,
+			"nama": nama,
+		}).Exec()
+
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		fmt.Println(satker)
 
 	}, jeen.WithDatabase(true))
 
