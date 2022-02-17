@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"os"
 	"time"
@@ -60,25 +59,6 @@ func main() {
 	defer serv.Close()
 
 	serv.Get("/", func(res *jeen.Resource) {
-
-		type Satker struct {
-			ID   int
-			Nama string
-		}
-
-		var satker Satker
-		err := res.Database.Query("SELECT id, nama FROM ref_satker").Row(&satker)
-
-		res.Database.Insert("ref_satker", jeen.Map{
-			"id":   id,
-			"nama": nama,
-		}).Exec()
-
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		fmt.Println(satker)
 
 	}, jeen.WithDatabase(true))
 

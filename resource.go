@@ -1,6 +1,9 @@
 package jeen
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type Resource struct {
 	*http.Request
@@ -15,4 +18,12 @@ func createResource(rw http.ResponseWriter, r *http.Request) *Resource {
 		Request: r,
 		Writer:  rw,
 	}
+}
+
+func (r *Resource) SetValue(key, val interface{}) {
+	r.Request = r.Request.WithContext(context.WithValue(r.Context(), key, val))
+}
+
+func (r *Resource) GetValue(key interface{}) interface{} {
+	return r.Context().Value(key)
 }
