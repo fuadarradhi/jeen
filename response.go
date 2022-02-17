@@ -2,6 +2,7 @@ package jeen
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	_html "html/template"
 	"io"
@@ -22,11 +23,23 @@ type HtmlResponse struct {
 	engine *HtmlEngine
 }
 
+type JsonResponse struct {
+	// response writer
+	writer http.ResponseWriter
+}
+
 // create new html response
 func htmlResponse(rw http.ResponseWriter, t *HtmlEngine) *HtmlResponse {
 	return &HtmlResponse{
 		writer: rw,
 		engine: t,
+	}
+}
+
+// create new json response
+func jsonResponse(rw http.ResponseWriter) *JsonResponse {
+	return &JsonResponse{
+		writer: rw,
 	}
 }
 
@@ -52,6 +65,33 @@ func (h *HtmlResponse) Busy(filename string, data Map, escape ...bool) error {
 // use escape = false if don't need html escape (default `true`)
 func (h *HtmlResponse) Render(statusCode int, filename string, data Map, escape ...bool) error {
 	return h.engine.Render(h.writer, statusCode, filename, data, len(escape) == 0 || escape[0])
+}
+
+// Success is shortcut for Render with StatusOK = 200,
+func (j *JsonResponse) Success(data interface{}) error {
+	return j.Render(http.StatusOK, data)
+}
+
+// Error is shortcut for Render with StatusInternalServerError = 500,
+func (j *JsonResponse) Error(data interface{}) error {
+	return j.Render(http.StatusInternalServerError, data)
+}
+
+// Success is shortcut for Render with StatusGatewayTimeout = 504,
+func (j *JsonResponse) Busy(data interface{}) error {
+	return j.Render(http.StatusGatewayTimeout, data)
+}
+
+// Render response json output to browser,
+func (j *JsonResponse) Render(statusCode int, data interface{}) error {
+	out, err := json.Marshal(data)
+	if err != nil {
+		return err
+	}
+	j.writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+	j.writer.WriteHeader(statusCode)
+	_, err = j.writer.Write(out)
+	return err
 }
 
 //
