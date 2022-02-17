@@ -15,10 +15,11 @@ Context cancellation has been included in every request so there is no need to c
 Database and session has also been included so that it can be used easily in every http request. However, you can choose database and session drivers as needed.
 
 ## Credits
-- Go Chi Router (https://github.com/go-chi/chi)
-- SCS Session (https://github.com/alexedwards/scs)
-- Scanny (https://github.com/georgysavva/scany)
-- GoView (https://github.com/foolin/goview)
+- Go Chi Router (https://github.com/go-chi/chi), we use chi as main router in this package with default middleware mentioned in documentation.
+- SCS Session (https://github.com/alexedwards/scs), scs session is used but you can choose the driver for store.
+- Scanny (https://github.com/georgysavva/scany), sqlscan dari scanny dikombinasikan dengan named parameter untuk memudahkan penulisan query.
+sqlscan from scanny is combined with named parameters to make it easier to write queries.
+- GoView (https://github.com/foolin/goview), we do not call goview explicitly but use the source code in the package and modify it for the needs of html and text templates.
 
 
 ## Author
