@@ -3,6 +3,8 @@ package jeen
 import (
 	"context"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type Resource struct {
@@ -43,4 +45,9 @@ func (r *Resource) SetValue(key, val interface{}) {
 // GetValue get value from context
 func (r *Resource) GetValue(key interface{}) interface{} {
 	return r.Context().Value(key)
+}
+
+// URLParam returns the url parameter from a http.Request object.
+func (r *Resource) URLParam(key string) string {
+	return chi.URLParam(r.Request, key)
 }
