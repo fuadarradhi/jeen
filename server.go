@@ -43,12 +43,26 @@ type Config struct {
 	Default *Default
 }
 
+type Delims struct {
+	Left  string
+	Right string
+}
+
+type Template struct {
+	Root         string
+	Master       string
+	Partials     []string
+	Funcs        Map
+	DisableCache bool
+	Delims       *Delims
+}
+
 type Server struct {
 	router       Router
 	withDatabase bool
 	withSession  bool
 	withTimeout  time.Duration
-	withTemplate *TemplateEngine
+	withTemplate *HtmlEngine
 }
 
 type HandlerServerFunc func(serv *Server)
@@ -73,7 +87,7 @@ func WithTimeout(timeout time.Duration) Options {
 
 func WithTemplate(template *Template) Options {
 	return func(s *Server) {
-		s.withTemplate = NewTemplateEngine(
+		s.withTemplate = newTemplateEngine(
 			mergeWithOldEngine(s.withTemplate.template, template),
 		)
 	}
@@ -85,13 +99,13 @@ func InitServer(cfg *Config) *Server {
 	defDb := false
 	defSess := false
 	defTimeout := 7 * time.Second
-	var defTemplate *TemplateEngine
+	var defTemplate *HtmlEngine
 
 	if cfg.Default != nil {
 		defDb = cfg.Default.WithDatabase
 		defTimeout = cfg.Default.WithTimeout
 		if cfg.Default.WithTemplate != nil {
-			defTemplate = NewTemplateEngine(cfg.Default.WithTemplate)
+			defTemplate = newTemplateEngine(cfg.Default.WithTemplate)
 		}
 
 		if defTimeout < 2*time.Second {

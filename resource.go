@@ -15,11 +15,11 @@ type Resource struct {
 	Html *HtmlResponse
 }
 
-func createResource(rw http.ResponseWriter, r *http.Request, t *TemplateEngine) *Resource {
+func createResource(rw http.ResponseWriter, r *http.Request, h *HtmlEngine) *Resource {
 	return &Resource{
 		Request: r,
 		Writer:  rw,
-		Html:    htmlResponse(rw, t),
+		Html:    htmlResponse(rw, h),
 	}
 }
 
