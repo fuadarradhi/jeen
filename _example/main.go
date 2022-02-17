@@ -60,6 +60,8 @@ func main() {
 
 	serv.Get("/", func(res *jeen.Resource) {
 
+		res.Html.Success()
+
 	}, jeen.WithDatabase(true))
 
 	serv.ListenAndServe(":8000")

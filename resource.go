@@ -11,12 +11,15 @@ type Resource struct {
 
 	Database *Database
 	Session  *Session
+
+	Html *HtmlResponse
 }
 
-func createResource(rw http.ResponseWriter, r *http.Request) *Resource {
+func createResource(rw http.ResponseWriter, r *http.Request, t *TemplateEngine) *Resource {
 	return &Resource{
 		Request: r,
 		Writer:  rw,
+		Html:    htmlResponse(rw, t),
 	}
 }
 

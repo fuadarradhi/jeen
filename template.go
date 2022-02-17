@@ -57,7 +57,7 @@ func NewTemplateEngine(template *Template) *TemplateEngine {
 }
 
 // render output to responseWriter
-func (e *TemplateEngine) Render(w http.ResponseWriter, statusCode int, name string, data interface{}, escape bool) error {
+func (e *TemplateEngine) Render(w http.ResponseWriter, statusCode int, name string, data Map, escape bool) error {
 	header := w.Header()
 	if val := header["Content-Type"]; len(val) == 0 {
 		header["Content-Type"] = HTMLContentType
@@ -67,12 +67,12 @@ func (e *TemplateEngine) Render(w http.ResponseWriter, statusCode int, name stri
 }
 
 // render output to io.Writer, so we can use that output before render to browser
-func (e *TemplateEngine) RenderWriter(w io.Writer, name string, data interface{}, escape bool) error {
+func (e *TemplateEngine) RenderWriter(w io.Writer, name string, data Map, escape bool) error {
 	return e.executeRender(w, name, data, escape)
 }
 
 // shortcut to render html
-func (e *TemplateEngine) executeRender(out io.Writer, name string, data interface{}, escape bool) error {
+func (e *TemplateEngine) executeRender(out io.Writer, name string, data Map, escape bool) error {
 	useMaster := true
 	if filepath.Ext(name) == ".html" {
 		useMaster = false
@@ -86,7 +86,7 @@ func (e *TemplateEngine) executeRender(out io.Writer, name string, data interfac
 }
 
 // execute html template with escaped
-func (e *TemplateEngine) executeHtmlTemplate(out io.Writer, name string, data interface{}, useMaster bool) error {
+func (e *TemplateEngine) executeHtmlTemplate(out io.Writer, name string, data Map, useMaster bool) error {
 	var tpl *_html.Template
 	var err error
 	var ok bool
@@ -157,7 +157,7 @@ func (e *TemplateEngine) executeHtmlTemplate(out io.Writer, name string, data in
 }
 
 // execute html template without escaped
-func (e *TemplateEngine) executeTextTemplate(out io.Writer, name string, data interface{}, useMaster bool) error {
+func (e *TemplateEngine) executeTextTemplate(out io.Writer, name string, data Map, useMaster bool) error {
 	var tpl *_text.Template
 	var err error
 	var ok bool

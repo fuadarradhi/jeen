@@ -172,6 +172,7 @@ func (s *Server) httpHandler(rw http.ResponseWriter, r *http.Request, handler in
 		withDatabase: s.withDatabase,
 		withTimeout:  s.withTimeout,
 		withSession:  s.withSession,
+		withTemplate: s.withTemplate,
 	}
 	for _, opt := range opts {
 		opt(serv)
@@ -182,7 +183,7 @@ func (s *Server) httpHandler(rw http.ResponseWriter, r *http.Request, handler in
 	defer cancel()
 	r = r.WithContext(reqContext)
 
-	res := createResource(rw, r)
+	res := createResource(rw, r, serv.withTemplate)
 
 	if serv.withSession {
 		res.Session = getSession(res.Context(), session)
