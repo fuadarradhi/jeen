@@ -35,6 +35,7 @@ type Driver struct {
 type Default struct {
 	WithDatabase bool
 	WithTimeout  time.Duration
+	WithTemplate *Template
 }
 
 type Config struct {
@@ -47,6 +48,7 @@ type Server struct {
 	withDatabase bool
 	withSession  bool
 	withTimeout  time.Duration
+	withTemplate *TemplateEngine
 }
 
 type HandlerServerFunc func(serv *Server)
@@ -69,20 +71,33 @@ func WithTimeout(timeout time.Duration) Options {
 	}
 }
 
+func WithTemplate(template *Template) Options {
+	return func(s *Server) {
+		s.withTemplate = NewTemplateEngine(
+			mergeWithOldEngine(s.withTemplate.template, template),
+		)
+	}
+}
+
 func InitServer(cfg *Config) *Server {
 	r := chi.NewRouter()
 
 	defDb := false
 	defSess := false
 	defTimeout := 7 * time.Second
+	var defTemplate *TemplateEngine
 
 	if cfg.Default != nil {
 		defDb = cfg.Default.WithDatabase
 		defTimeout = cfg.Default.WithTimeout
+		if cfg.Default.WithTemplate != nil {
+			defTemplate = NewTemplateEngine(cfg.Default.WithTemplate)
+		}
 
 		if defTimeout < 2*time.Second {
 			log.Fatal("Minimum timeout is 2 seconds.")
 		}
+
 	}
 
 	if cfg.Driver != nil {
@@ -109,8 +124,29 @@ func InitServer(cfg *Config) *Server {
 		withDatabase: defDb,
 		withSession:  defSess,
 		withTimeout:  defTimeout,
+		withTemplate: defTemplate,
 	}
 }
+
+func mergeWithOldEngine(old, new *Template) *Template {
+	if new.Delims != nil {
+		old.Delims = new.Delims
+	}
+	if new.Master != "" {
+		old.Master = new.Master
+	}
+	if new.Root != "" {
+		old.Root = new.Root
+	}
+	if new.Partials != nil {
+		old.Partials = new.Partials
+	}
+	if new.Funcs != nil {
+		old.Funcs = new.Funcs
+	}
+	return old
+}
+
 func (s *Server) busy(res *Resource, err error) {
 	log.Println(err)
 	// TODO: response busy
@@ -122,6 +158,7 @@ func (s *Server) newHandler(router Router, opts ...Options) *Server {
 		withDatabase: s.withDatabase,
 		withSession:  s.withSession,
 		withTimeout:  s.withTimeout,
+		withTemplate: s.withTemplate,
 	}
 	for _, opt := range opts {
 		opt(serv)
