@@ -17,6 +17,7 @@ import (
 )
 
 var database *sql.DB
+var bindtype int
 var session *scs.SessionManager
 
 type Router interface {
@@ -29,8 +30,8 @@ var (
 )
 
 type Driver struct {
-	Database *sql.DB
-	Session  scs.Store
+	Database func() (db *sql.DB, drivername string)
+	Session  func() (store scs.Store)
 }
 type Default struct {
 	WithDatabase bool
@@ -116,12 +117,32 @@ func InitServer(cfg *Config) *Server {
 
 	if cfg.Driver != nil {
 		if cfg.Driver.Database != nil {
-			database = cfg.Driver.Database
+			var drivername string
+			database, drivername = cfg.Driver.Database()
+
+			defaultBinds := map[int][]string{
+				DOLLAR:   {"postgres", "pgx", "pq-timeouts", "cloudsqlpostgres", "ql", "nrpostgres", "cockroach"},
+				QUESTION: {"mysql", "sqlite3", "nrmysql", "nrsqlite3"},
+				NAMED:    {"oci8", "ora", "goracle", "godror"},
+				AT:       {"sqlserver"},
+			}
+
+			for bind, drivers := range defaultBinds {
+				for _, driver := range drivers {
+					if driver == drivername {
+						bindtype = bind
+						break
+					}
+				}
+				if bindtype != 0 {
+					break
+				}
+			}
 		}
 		if cfg.Driver.Session != nil {
 			defSess = true
 			session = scs.New()
-			session.Store = cfg.Driver.Session
+			session.Store = cfg.Driver.Session()
 		}
 
 		if defDb && cfg.Driver.Database == nil {

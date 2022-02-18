@@ -15,6 +15,14 @@ import (
 	"github.com/georgysavva/scany/sqlscan"
 )
 
+const (
+	UNKNOWN = iota
+	QUESTION
+	DOLLAR
+	NAMED
+	AT
+)
+
 type Database struct {
 	// request context
 	context context.Context
@@ -140,10 +148,21 @@ func (d *Database) BuildQuery(namedQuery string, namedArgs ...Map) (string, []in
 					return query.String(), args, fmt.Errorf(`field '%s' is not defined`, field)
 				}
 
-				// TODO: for all drivers
-				query.WriteRune('$')
-				query.WriteString(strconv.Itoa(namedIndex))
-
+				switch bindtype {
+				// oracle only supports named type bind vars even for positional
+				case NAMED:
+					query.WriteRune(':')
+					query.WriteString(field)
+				case QUESTION, UNKNOWN:
+					query.WriteRune('?')
+				case DOLLAR:
+					query.WriteRune('$')
+					query.WriteString(strconv.Itoa(namedIndex))
+				case AT:
+					query.WriteRune('@')
+					query.WriteRune('p')
+					query.WriteString(strconv.Itoa(namedIndex))
+				}
 				namedIndex++
 			}
 		}
