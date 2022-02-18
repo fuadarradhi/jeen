@@ -58,15 +58,7 @@ func main() {
 	})
 	defer serv.Close()
 
-	serv.Route("/", func(serv *jeen.Server) {
-		serv.NotFound(func(res *jeen.Resource) {
-			res.Writer.Write([]byte("roooot"))
-		})
-		serv.Mount("/tes", func(serv *jeen.Server) {
-			serv.NotFound(func(res *jeen.Resource) {
-				res.Writer.Write([]byte("rotesssooot"))
-			})
-		})
+	serv.Get("/", func(res *jeen.Resource) {
 	})
 
 	serv.ListenAndServe(":8000")
