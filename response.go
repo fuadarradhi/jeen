@@ -55,9 +55,9 @@ func (h *HtmlResponse) Error(filename string, data Map, escape ...bool) error {
 	return h.Render(http.StatusInternalServerError, filename, data, escape...)
 }
 
-// Success is shortcut for Render with StatusGatewayTimeout = 504,
+// Timeout is shortcut for Render with StatusGatewayTimeout = 504,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Busy(filename string, data Map, escape ...bool) error {
+func (h *HtmlResponse) Timeout(filename string, data Map, escape ...bool) error {
 	return h.Render(http.StatusGatewayTimeout, filename, data, escape...)
 }
 
@@ -65,6 +65,13 @@ func (h *HtmlResponse) Busy(filename string, data Map, escape ...bool) error {
 // use escape = false if don't need html escape (default `true`)
 func (h *HtmlResponse) Render(statusCode int, filename string, data Map, escape ...bool) error {
 	return h.engine.Render(h.writer, statusCode, filename, data, len(escape) == 0 || escape[0])
+}
+
+// StatusText response output to browser, with header and default string from statuscode
+func (h *HtmlResponse) StatusText(statusCode int) error {
+	h.writer.WriteHeader(statusCode)
+	_, err := h.writer.Write([]byte(http.StatusText(statusCode)))
+	return err
 }
 
 // Success is shortcut for Render with StatusOK = 200,
@@ -77,8 +84,8 @@ func (j *JsonResponse) Error(data interface{}) error {
 	return j.Render(http.StatusInternalServerError, data)
 }
 
-// Success is shortcut for Render with StatusGatewayTimeout = 504,
-func (j *JsonResponse) Busy(data interface{}) error {
+// Timeout is shortcut for Render with StatusGatewayTimeout = 504,
+func (j *JsonResponse) Timeout(data interface{}) error {
 	return j.Render(http.StatusGatewayTimeout, data)
 }
 

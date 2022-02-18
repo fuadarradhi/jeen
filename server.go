@@ -59,11 +59,12 @@ type Template struct {
 }
 
 type Server struct {
-	router       Router
-	withDatabase bool
-	withSession  bool
-	withTimeout  time.Duration
-	withTemplate *HtmlEngine
+	router         Router
+	timeoutHandler HandlerRouteFunc
+	withDatabase   bool
+	withSession    bool
+	withTimeout    time.Duration
+	withTemplate   *HtmlEngine
 }
 
 type HandlerServerFunc func(serv *Server)
@@ -182,18 +183,14 @@ func mergeWithOldEngine(old, new *Template) *Template {
 	return old
 }
 
-func (s *Server) busy(res *Resource, err error) {
-	log.Println(err)
-	// TODO: response busy
-}
-
 func (s *Server) newHandler(router Router, opts ...Options) *Server {
 	serv := &Server{
-		router:       router,
-		withDatabase: s.withDatabase,
-		withSession:  s.withSession,
-		withTimeout:  s.withTimeout,
-		withTemplate: s.withTemplate,
+		router:         router,
+		withDatabase:   s.withDatabase,
+		withSession:    s.withSession,
+		withTimeout:    s.withTimeout,
+		withTemplate:   s.withTemplate,
+		timeoutHandler: s.timeoutHandler,
 	}
 	for _, opt := range opts {
 		opt(serv)
@@ -224,10 +221,19 @@ func (s *Server) httpHandler(rw http.ResponseWriter, r *http.Request, handler in
 		res.Session = getSession(res.Context(), session)
 	}
 
+	// allow timeout handler set in each route,
+	// set to default if not set before
+	timeoutHandler := s.timeoutHandler
+	if timeoutHandler == nil {
+		timeoutHandler = func(res *Resource) {
+			res.Html.StatusText(504)
+		}
+	}
+
 	if serv.withDatabase {
 		db, err := conn(res.Context(), database)
 		if err != nil {
-			s.busy(res, err)
+			timeoutHandler(res)
 			return false
 		}
 		defer db.Close()
@@ -276,7 +282,7 @@ func (s *Server) httpHandler(rw http.ResponseWriter, r *http.Request, handler in
 
 	// if request timeout show response busy.
 	case <-reqContext.Done():
-		s.busy(res, reqContext.Err())
+		timeoutHandler(res)
 		return false
 
 	// if the process is successful, just return it.
@@ -364,6 +370,13 @@ func (s *Server) MethodFunc(method string, pattern string, handler HandlerRouteF
 	s.router.MethodFunc(method, pattern, func(rw http.ResponseWriter, r *http.Request) {
 		s.httpHandler(rw, r, handler, opts...)
 	})
+	return s
+}
+
+// Timeout sets a custom jeen.HandlerRouteFunc for routing paths that have
+// exceeded timeout. The default is json response.
+func (s *Server) Timeout(handler HandlerRouteFunc, opts ...Options) *Server {
+	s.timeoutHandler = handler
 	return s
 }
 

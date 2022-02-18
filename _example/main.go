@@ -26,7 +26,7 @@ func main() {
 		Driver: &jeen.Driver{
 
 			// Database driver
-			Database: func() *sql.DB {
+			Database: func() (*sql.DB, string) {
 
 				config, err := pgx.ParseConfig(os.Getenv("DSN"))
 				if err != nil {
@@ -34,9 +34,9 @@ func main() {
 				}
 				config.PreferSimpleProtocol = true
 				db := stdlib.OpenDB(*config)
-				return db
 
-			}(),
+				return db, "pgx"
+			},
 
 			// SCS Session store
 			Session: func() scs.Store {
@@ -47,22 +47,27 @@ func main() {
 					},
 				}
 				return redisstore.New(pool)
-			}(),
+			},
 		},
 
 		// Default value
 		Default: &jeen.Default{
-			WithDatabase: false,
+			WithDatabase: true,
 			WithTimeout:  7 * time.Second,
 		},
 	})
 	defer serv.Close()
 
-	serv.Get("/", func(res *jeen.Resource) {
-
-		res.Html.Success()
-
-	}, jeen.WithDatabase(true))
+	serv.Route("/", func(serv *jeen.Server) {
+		serv.NotFound(func(res *jeen.Resource) {
+			res.Writer.Write([]byte("roooot"))
+		})
+		serv.Mount("/tes", func(serv *jeen.Server) {
+			serv.NotFound(func(res *jeen.Resource) {
+				res.Writer.Write([]byte("rotesssooot"))
+			})
+		})
+	})
 
 	serv.ListenAndServe(":8000")
 }
