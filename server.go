@@ -518,6 +518,11 @@ func (s *Server) Close() {
 	log.Println("Thank you, server has been stopped.")
 }
 
+// Handler expose http.Handler
+func (s *Server) Handler() http.Handler {
+	return s.router
+}
+
 // ListenAndServe listens on the TCP network address addr and then calls Serve
 // with handler to handle requests on incoming connections. Accepted connections
 // are configured to enable TCP keep-alives.
