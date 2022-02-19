@@ -58,8 +58,5 @@ func main() {
 	})
 	defer serv.Close()
 
-	serv.Get("/", func(res *jeen.Resource) {
-	})
-
 	serv.ListenAndServe(":8000")
 }
