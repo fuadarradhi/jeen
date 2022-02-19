@@ -152,7 +152,7 @@ func InitServer(cfg *Config) *Server {
 	}
 
 	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
+	// r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
 	return &Server{
