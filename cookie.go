@@ -8,6 +8,14 @@ type Cookie struct {
 	writer  http.ResponseWriter
 }
 
+// create new cookie instance
+func newCookie(rw http.ResponseWriter, r *http.Request) *Cookie {
+	return &Cookie{
+		writer:  rw,
+		request: r,
+	}
+}
+
 // Get returns the named cookie provided in the request or
 // ErrNoCookie if not found.
 // If multiple cookies match the given name, only one cookie will

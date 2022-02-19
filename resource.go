@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// All resource needed for development
 type Resource struct {
 	// private for internal use
 	writer  http.ResponseWriter
@@ -38,26 +39,15 @@ func createResource(rw http.ResponseWriter, r *http.Request, h *HtmlEngine) *Res
 	return &Resource{
 		request: r,
 		writer:  rw,
-
 		Context: r.Context(),
-
-		Cookie: &Cookie{
-			writer:  rw,
-			request: r,
-		},
-
-		Html: &Html{
-			writer: rw,
-			engine: h,
-		},
-
-		Json: &Json{
-			writer: rw,
-		},
+		Request: newRequest(r),
+		Cookie:  newCookie(rw, r),
+		Html:    newHtml(rw, h),
+		Json:    newJson(rw),
 	}
 }
 
-// Set set value to request context, see GetValue to get it
+// Set set value to request context, see Get to get it
 func (r *Resource) Set(key, val interface{}) {
 	r.request = r.request.WithContext(context.WithValue(r.Context, key, val))
 }

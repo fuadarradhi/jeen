@@ -10,6 +10,13 @@ type Json struct {
 	writer http.ResponseWriter
 }
 
+// create new json response
+func newJson(rw http.ResponseWriter) *Json {
+	return &Json{
+		writer: rw,
+	}
+}
+
 // Success is shortcut for Response with StatusOK = 200,
 func (j *Json) Success(data interface{}) error {
 	return j.Response(http.StatusOK, data)

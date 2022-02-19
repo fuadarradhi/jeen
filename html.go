@@ -22,6 +22,14 @@ type Html struct {
 	engine *HtmlEngine
 }
 
+// create new html response
+func newHtml(rw http.ResponseWriter, e *HtmlEngine) *Html {
+	return &Html{
+		writer: rw,
+		engine: e,
+	}
+}
+
 // Success is shortcut for Response with StatusOK = 200,
 // use escape = false if don't need html escape (default `true`)
 func (h *Html) Success(filename string, data Map, escape ...bool) error {
