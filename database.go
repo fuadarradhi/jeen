@@ -101,7 +101,7 @@ func (d *Database) Close() {
 	}
 }
 
-// buildquery will convert named queries to positional queries, so they can
+// buildquery convert named queries to positional queries, so they can
 // be executed directly by the database/sql without changing the working
 // system of sanitaze sql injection
 func (d *Database) BuildQuery(namedQuery string, namedArgs ...Map) (string, []interface{}, error) {
@@ -175,7 +175,7 @@ func (d *Database) BuildQuery(namedQuery string, namedArgs ...Map) (string, []in
 	return query.String(), args, nil
 }
 
-// Query will only store the query string and arguments without executing it.
+// Query only store the query string and arguments without executing it.
 // see Result, Row and Exec for more information.
 func (d *Database) Query(query string, args ...Map) *SqlQuery {
 	qry, arg, err := d.BuildQuery(query, args...)
@@ -192,7 +192,7 @@ func (d *Database) Query(query string, args ...Map) *SqlQuery {
 	}
 }
 
-// Result will return all rows from the query
+// Result return all rows from the query
 func (q *SqlQuery) Result(dest interface{}) error {
 	rows, err := q.conn.QueryContext(q.context, q.query, q.args...)
 	if err != nil {
@@ -208,7 +208,7 @@ func (q *SqlQuery) Result(dest interface{}) error {
 	return nil
 }
 
-// Row will return only one row from the query
+// Row return only one row from the query
 func (q *SqlQuery) Row(dest interface{}) error {
 	rows, err := q.conn.QueryContext(q.context, q.query, q.args...)
 	if err != nil {
