@@ -2,7 +2,6 @@ package jeen
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	_html "html/template"
 	"io"
@@ -15,7 +14,7 @@ import (
 	_text "text/template"
 )
 
-type HtmlResponse struct {
+type Html struct {
 	// response writer
 	writer http.ResponseWriter
 
@@ -23,65 +22,45 @@ type HtmlResponse struct {
 	engine *HtmlEngine
 }
 
-type JsonResponse struct {
-	// response writer
-	writer http.ResponseWriter
-}
-
-// create new html response
-func htmlResponse(rw http.ResponseWriter, t *HtmlEngine) *HtmlResponse {
-	return &HtmlResponse{
-		writer: rw,
-		engine: t,
-	}
-}
-
-// create new json response
-func jsonResponse(rw http.ResponseWriter) *JsonResponse {
-	return &JsonResponse{
-		writer: rw,
-	}
-}
-
 // Success is shortcut for Response with StatusOK = 200,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Success(filename string, data Map, escape ...bool) error {
+func (h *Html) Success(filename string, data Map, escape ...bool) error {
 	return h.Response(http.StatusOK, filename, data, escape...)
 }
 
 // Error is shortcut for Response with StatusInternalServerError = 500,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Error(filename string, data Map, escape ...bool) error {
+func (h *Html) Error(filename string, data Map, escape ...bool) error {
 	return h.Response(http.StatusInternalServerError, filename, data, escape...)
 }
 
 // Timeout is shortcut for Response with StatusGatewayTimeout = 504,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Timeout(filename string, data Map, escape ...bool) error {
+func (h *Html) Timeout(filename string, data Map, escape ...bool) error {
 	return h.Response(http.StatusGatewayTimeout, filename, data, escape...)
 }
 
 // Forbidden is shortcut for Response with StatusForbidden = 403,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Forbidden(filename string, data Map, escape ...bool) error {
+func (h *Html) Forbidden(filename string, data Map, escape ...bool) error {
 	return h.Response(http.StatusForbidden, filename, data, escape...)
 }
 
 // NotFound is shortcut for Response with StatusNotFound = 404,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) NotFound(filename string, data Map, escape ...bool) error {
+func (h *Html) NotFound(filename string, data Map, escape ...bool) error {
 	return h.Response(http.StatusNotFound, filename, data, escape...)
 }
 
 // Unauthorized is shortcut for Response with StatusUnauthorized = 401,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Unauthorized(filename string, data Map, escape ...bool) error {
+func (h *Html) Unauthorized(filename string, data Map, escape ...bool) error {
 	return h.Response(http.StatusUnauthorized, filename, data, escape...)
 }
 
 // Response render html from filename, output to browser,
 // use escape = false if don't need html escape (default `true`)
-func (h *HtmlResponse) Response(statusCode int, filename string, data Map, escape ...bool) error {
+func (h *Html) Response(statusCode int, filename string, data Map, escape ...bool) error {
 	return h.engine.Response(h.writer, statusCode, filename, data, len(escape) == 0 || escape[0])
 }
 
@@ -91,69 +70,27 @@ func (h *HtmlResponse) Response(statusCode int, filename string, data Map, escap
 //  var b bytes.Buffer
 //  err = res.Html.Output(&b, ...)
 //  fmt.Println(b.String())
-func (h *HtmlResponse) Render(out io.Writer, filename string, data Map, escape ...bool) error {
+func (h *Html) Render(out io.Writer, filename string, data Map, escape ...bool) error {
 	return h.engine.Render(out, filename, data, len(escape) == 0 || escape[0])
 }
 
 // ResponseString response to browser from statuscode and string content
-func (h *HtmlResponse) ResponseString(statusCode int, text string) error {
+func (h *Html) ResponseString(statusCode int, text string) error {
 	h.writer.WriteHeader(statusCode)
 	_, err := h.writer.Write([]byte(text))
 	return err
 }
 
 // ResponseByte render to browser from statuscode and byte content
-func (h *HtmlResponse) ResponseByte(statusCode int, text []byte) error {
+func (h *Html) ResponseByte(statusCode int, text []byte) error {
 	h.writer.WriteHeader(statusCode)
 	_, err := h.writer.Write(text)
 	return err
 }
 
 // StatusText response output to browser, with header and default string from statuscode
-func (h *HtmlResponse) StatusText(statusCode int) error {
+func (h *Html) StatusText(statusCode int) error {
 	return h.ResponseString(statusCode, http.StatusText(statusCode))
-}
-
-// Success is shortcut for Response with StatusOK = 200,
-func (j *JsonResponse) Success(data interface{}) error {
-	return j.Response(http.StatusOK, data)
-}
-
-// Error is shortcut for Response with StatusInternalServerError = 500,
-func (j *JsonResponse) Error(data interface{}) error {
-	return j.Response(http.StatusInternalServerError, data)
-}
-
-// Timeout is shortcut for Response with StatusGatewayTimeout = 504,
-func (j *JsonResponse) Timeout(data interface{}) error {
-	return j.Response(http.StatusGatewayTimeout, data)
-}
-
-// Forbidden is shortcut for Response with StatusForbidden = 403,
-func (j *JsonResponse) Forbidden(data interface{}) error {
-	return j.Response(http.StatusForbidden, data)
-}
-
-// NotFound is shortcut for Response with StatusNotFound = 404,
-func (j *JsonResponse) NotFound(data interface{}) error {
-	return j.Response(http.StatusNotFound, data)
-}
-
-// Unauthorized is shortcut for Response with StatusUnauthorized = 401,
-func (j *JsonResponse) Unauthorized(data interface{}) error {
-	return j.Response(http.StatusUnauthorized, data)
-}
-
-// Response response json output to browser,
-func (j *JsonResponse) Response(statusCode int, data interface{}) error {
-	out, err := json.Marshal(data)
-	if err != nil {
-		return err
-	}
-	j.writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	j.writer.WriteHeader(statusCode)
-	_, err = j.writer.Write(out)
-	return err
 }
 
 //

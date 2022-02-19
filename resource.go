@@ -2,17 +2,23 @@ package jeen
 
 import (
 	"context"
+	"errors"
 	"net/http"
-
-	"github.com/go-chi/chi/v5"
 )
 
 type Resource struct {
-	// http request wrap
-	*http.Request
+	// private for internal use
+	writer  http.ResponseWriter
+	request *http.Request
 
-	// response writer
-	Writer http.ResponseWriter
+	// request
+	Request *Request
+
+	// cookie
+	Cookie *Cookie
+
+	// request context
+	Context context.Context
 
 	// database sql.DB
 	Database *Database
@@ -21,33 +27,51 @@ type Resource struct {
 	Session *Session
 
 	// html response with goview
-	Html *HtmlResponse
+	Html *Html
 
 	// json response
-	Json *JsonResponse
+	Json *Json
 }
 
 // create new resource
 func createResource(rw http.ResponseWriter, r *http.Request, h *HtmlEngine) *Resource {
 	return &Resource{
-		Request: r,
-		Writer:  rw,
-		Html:    htmlResponse(rw, h),
-		Json:    jsonResponse(rw),
+		request: r,
+		writer:  rw,
+
+		Context: r.Context(),
+
+		Cookie: &Cookie{
+			writer:  rw,
+			request: r,
+		},
+
+		Html: &Html{
+			writer: rw,
+			engine: h,
+		},
+
+		Json: &Json{
+			writer: rw,
+		},
 	}
 }
 
-// SetValue set value to request context, see GetValue to get it
-func (r *Resource) SetValue(key, val interface{}) {
-	r.Request = r.Request.WithContext(context.WithValue(r.Context(), key, val))
+// Set set value to request context, see GetValue to get it
+func (r *Resource) Set(key, val interface{}) {
+	r.request = r.request.WithContext(context.WithValue(r.Context, key, val))
 }
 
-// GetValue get value from context
-func (r *Resource) GetValue(key interface{}) interface{} {
-	return r.Context().Value(key)
+// Get get value from context
+func (r *Resource) Get(key interface{}) interface{} {
+	return r.Context.Value(key)
 }
 
-// URLParam returns the url parameter from a http.Request object.
-func (r *Resource) URLParam(key string) string {
-	return chi.URLParam(r.Request, key)
+// Redirect redirects the request to a provided URL with status code.
+func (r *Resource) Redirect(code int, url string) error {
+	if code < 300 || code > 308 {
+		return errors.New("invalid redirect status code")
+	}
+	http.Redirect(r.writer, r.request, url, code)
+	return nil
 }

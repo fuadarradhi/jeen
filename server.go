@@ -218,7 +218,7 @@ func (s *Server) httpHandler(rw http.ResponseWriter, r *http.Request, handler in
 	res := createResource(rw, r, serv.withTemplate)
 
 	if serv.withSession {
-		res.Session = getSession(res.Context(), session)
+		res.Session = getSession(res.Context, session)
 	}
 
 	// allow timeout handler set in each route,
@@ -231,7 +231,7 @@ func (s *Server) httpHandler(rw http.ResponseWriter, r *http.Request, handler in
 	}
 
 	if serv.withDatabase {
-		db, err := conn(res.Context(), database)
+		db, err := conn(res.Context, database)
 		if err != nil {
 			timeoutHandler(res)
 			return false
