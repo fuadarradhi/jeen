@@ -15,6 +15,9 @@ type Resource struct {
 	// request
 	Request *Request
 
+	// writer
+	Writer *Writer
+
 	// cookie
 	Cookie *Cookie
 
@@ -37,10 +40,13 @@ type Resource struct {
 // create new resource
 func createResource(rw http.ResponseWriter, r *http.Request, h *HtmlEngine) *Resource {
 	return &Resource{
+		// private
 		request: r,
 		writer:  rw,
+
 		Context: r.Context(),
 		Request: newRequest(r),
+		Writer:  newWriter(rw),
 		Cookie:  newCookie(rw, r),
 		Html:    newHtml(rw, h),
 		Json:    newJson(rw),
